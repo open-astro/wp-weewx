@@ -15,11 +15,9 @@ $station_name = WPWeeWX_Renderer::display_value( $data, 'station.location' );
 <div class="weewx-weather weewx-weather--<?php echo esc_attr( $theme ); ?>">
 	<div class="weewx-weather__header">
 		<h2 class="weewx-weather__title"><?php echo esc_html( $station_name ); ?></h2>
-		<?php if ( $cache_used && $warning ) : ?>
-			<span class="weewx-weather__badge"><?php echo esc_html( $warning ); ?></span>
-		<?php elseif ( $cache_used ) : ?>
-			<span class="weewx-weather__badge"><?php esc_html_e( 'Cached', 'wpweewx' ); ?></span>
-		<?php endif; ?>
+		<button class="weewx-weather__reload" type="button" onclick="window.location.reload()">
+			<?php esc_html_e( 'Reload', 'wpweewx' ); ?>
+		</button>
 	</div>
 
 	<div class="weewx-weather__summary">

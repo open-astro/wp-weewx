@@ -2,6 +2,10 @@
 
 Display WeeWX JSON weather data with a shortcode.
 
+## Changelog
+
+See `CHANGELOG.md` for release history.
+
 ## Plugin Info
 
 - Contributors: Joey Troy, gpt-5.2-codex
@@ -31,9 +35,3 @@ WPWeeWX fetches WeeWX-generated JSON and renders responsive weather dashboards.
 Use `[weewx_weather]` or specify attributes:
 
 `[weewx_weather source="simple" view="current"]`
-
-## Changelog
-
-### 0.1.0
-
-- Initial release.

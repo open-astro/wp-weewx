@@ -29,7 +29,6 @@ class WPWeeWX_Shortcode {
 			'view'    => WPWeeWX_Settings::get( 'wpweewx_default_view' ),
 			'theme'   => WPWeeWX_Settings::get( 'wpweewx_default_theme' ),
 			'show'    => '',
-			'refresh' => '0',
 		);
 
 		$atts = shortcode_atts( $defaults, $atts, 'weewx_weather' );
@@ -38,9 +37,7 @@ class WPWeeWX_Shortcode {
 		$view   = WPWeeWX_Settings::sanitize_view( $atts['view'] );
 		$theme  = WPWeeWX_Settings::sanitize_theme( $atts['theme'] );
 
-		$force = ( '1' === $atts['refresh'] ) && current_user_can( 'manage_options' );
-
-		$payload = WPWeeWX_Fetcher::get_data( $source, $force );
+		$payload = WPWeeWX_Fetcher::get_data( $source, true );
 		if ( empty( $payload['data'] ) ) {
 			$message = isset( $payload['error'] ) ? $payload['error'] : __( 'Unable to load weather data.', 'wpweewx' );
 			return '<div class="weewx-weather weewx-weather--error">' . esc_html( $message ) . '</div>';

@@ -29,7 +29,7 @@ class WPWeeWX_Fetcher {
 			}
 		}
 
-		$live = self::fetch_live( $source );
+		$live = self::fetch_live( $source, $force );
 
 		if ( isset( $live['data'] ) ) {
 			set_transient( $cache_key, $live, WPWeeWX_Settings::get( 'wpweewx_cache_ttl' ) );
@@ -51,9 +51,10 @@ class WPWeeWX_Fetcher {
 	 * Perform a live fetch.
 	 *
 	 * @param string $source Source.
+	 * @param bool   $force  Force refresh.
 	 * @return array<string, mixed>
 	 */
-	public static function fetch_live( $source ) {
+	public static function fetch_live( $source, $force = false ) {
 		$source = WPWeeWX_Settings::sanitize_source( $source );
 		$url    = ( 'simple' === $source )
 			? WPWeeWX_Settings::get( 'wpweewx_json_url_simple' )
@@ -70,6 +71,10 @@ class WPWeeWX_Fetcher {
 			return array(
 				'error' => __( 'Invalid URL scheme. Use http or https.', 'wpweewx' ),
 			);
+		}
+
+		if ( $force ) {
+			$url = add_query_arg( 'wpweewx_ts', time(), $url );
 		}
 
 		$args = array(

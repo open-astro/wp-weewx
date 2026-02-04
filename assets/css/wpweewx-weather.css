@@ -48,12 +48,18 @@
   white-space: nowrap;
 }
 
-.weewx-weather__badge {
+.weewx-weather__reload {
   background: var(--weewx-accent);
   color: #ffffff;
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
+  border: none;
+  cursor: pointer;
+}
+
+.weewx-weather__reload:hover {
+  opacity: 0.9;
 }
 
 .weewx-weather__grid {

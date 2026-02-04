@@ -3,7 +3,7 @@
  * Plugin Name: WPWeeWX
  * Plugin URI:  https://github.com/open-astro/WPWeeWX
  * Description: Display WeeWX JSON weather data with a shortcode.
- * Version:     0.1.0
+ * Version:     0.1.1
  * Author:      OpenAstro
  * Text Domain: wpweewx
  * Domain Path: /languages
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WPWEEWX_VERSION', '0.1.0' );
+define( 'WPWEEWX_VERSION', '0.1.1' );
 define( 'WPWEEWX_PLUGIN_FILE', __FILE__ );
 define( 'WPWEEWX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPWEEWX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

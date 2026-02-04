@@ -35,11 +35,9 @@ if ( is_string( $generation_raw ) && false !== strpos( $generation_raw, 'T' ) ) 
 				<?php endif; ?>
 			</div>
 		</div>
-		<?php if ( $cache_used && $warning ) : ?>
-			<span class="weewx-weather__badge"><?php echo esc_html( $warning ); ?></span>
-		<?php elseif ( $cache_used ) : ?>
-			<span class="weewx-weather__badge"><?php esc_html_e( 'Cached', 'wpweewx' ); ?></span>
-		<?php endif; ?>
+		<button class="weewx-weather__reload" type="button" onclick="window.location.reload()">
+			<?php esc_html_e( 'Reload', 'wpweewx' ); ?>
+		</button>
 	</div>
 
 	<div class="weewx-weather__grid weewx-weather__grid--single">
