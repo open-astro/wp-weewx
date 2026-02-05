@@ -50,7 +50,9 @@ class WPWeeWX_Admin {
 		check_admin_referer( 'wpweewx_test_fetch' );
 
 		$source = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : 'main';
-		$source = WPWeeWX_Settings::sanitize_source( $source );
+		if ( ! in_array( $source, array( 'main', 'simple', 'lcd' ), true ) ) {
+			$source = 'main';
+		}
 
 		$result = WPWeeWX_Fetcher::test_fetch( $source );
 		set_transient( 'wpweewx_test_result', $result, 60 );
@@ -88,23 +90,30 @@ class WPWeeWX_Admin {
 				?>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Main JSON URL', 'wpweewx' ); ?></th>
-						<td>
-							<input type="url" class="regular-text" name="wpweewx_json_url_main" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_json_url_main' ) ); ?>" />
-						</td>
-					</tr>
-					<tr>
 						<th scope="row"><?php esc_html_e( 'Simple JSON URL', 'wpweewx' ); ?></th>
 						<td>
 							<input type="url" class="regular-text" name="wpweewx_json_url_simple" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_json_url_simple' ) ); ?>" />
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Main JSON URL', 'wpweewx' ); ?></th>
+						<td>
+							<input type="url" class="regular-text" name="wpweewx_json_url_main" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_json_url_main' ) ); ?>" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'LCD Datasheet JSON URL', 'wpweewx' ); ?></th>
+						<td>
+							<input type="url" class="regular-text" name="wpweewx_json_url_lcd" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_json_url_lcd' ) ); ?>" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Default Source', 'wpweewx' ); ?></th>
 						<td>
 							<select name="wpweewx_default_source">
-								<option value="main" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_source' ), 'main' ); ?>><?php esc_html_e( 'Main', 'wpweewx' ); ?></option>
 								<option value="simple" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_source' ), 'simple' ); ?>><?php esc_html_e( 'Simple', 'wpweewx' ); ?></option>
+								<option value="main" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_source' ), 'main' ); ?>><?php esc_html_e( 'Main', 'wpweewx' ); ?></option>
+								<option value="lcd" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_source' ), 'lcd' ); ?>><?php esc_html_e( 'LCD', 'wpweewx' ); ?></option>
 							</select>
 						</td>
 					</tr>
@@ -149,8 +158,9 @@ class WPWeeWX_Admin {
 				<?php wp_nonce_field( 'wpweewx_test_fetch' ); ?>
 				<input type="hidden" name="action" value="wpweewx_test_fetch" />
 				<p>
-					<button type="submit" class="button" name="source" value="main"><?php esc_html_e( 'Test Fetch (Main JSON)', 'wpweewx' ); ?></button>
 					<button type="submit" class="button" name="source" value="simple"><?php esc_html_e( 'Test Fetch (Simple JSON)', 'wpweewx' ); ?></button>
+					<button type="submit" class="button" name="source" value="main"><?php esc_html_e( 'Test Fetch (Main JSON)', 'wpweewx' ); ?></button>
+					<button type="submit" class="button" name="source" value="lcd"><?php esc_html_e( 'Test Fetch (LCD JSON)', 'wpweewx' ); ?></button>
 				</p>
 			</form>
 

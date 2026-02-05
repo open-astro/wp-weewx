@@ -37,7 +37,19 @@ class WPWeeWX_Shortcode {
 		$view   = WPWeeWX_Settings::sanitize_view( $atts['view'] );
 		$theme  = WPWeeWX_Settings::sanitize_theme( $atts['theme'] );
 
-		$payload = WPWeeWX_Fetcher::get_data( $source, true );
+		// Dashboard variants removed; source is controlled separately.
+
+		$lcd_payload = null;
+		if ( 'lcd' === $source ) {
+			$payload = WPWeeWX_Fetcher::get_lcd_data( true );
+			$lcd_payload = $payload;
+		} else {
+			$payload = WPWeeWX_Fetcher::get_data( $source, true );
+			if ( ! empty( WPWeeWX_Settings::get( 'wpweewx_json_url_lcd' ) ) ) {
+				$lcd_payload = WPWeeWX_Fetcher::get_lcd_data( true );
+			}
+		}
+
 		if ( empty( $payload['data'] ) ) {
 			$message = isset( $payload['error'] ) ? $payload['error'] : __( 'Unable to load weather data.', 'wpweewx' );
 			return '<div class="weewx-weather weewx-weather--error">' . esc_html( $message ) . '</div>';
@@ -50,6 +62,7 @@ class WPWeeWX_Shortcode {
 				'source' => $source,
 				'theme'  => $theme,
 				'show'   => $atts['show'],
+				'lcd_payload' => $lcd_payload,
 			)
 		);
 	}

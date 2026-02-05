@@ -18,6 +18,7 @@ class WPWeeWX_Settings {
 	private static $defaults = array(
 		'wpweewx_json_url_main'   => '',
 		'wpweewx_json_url_simple' => '',
+		'wpweewx_json_url_lcd'    => '',
 		'wpweewx_default_source'  => 'main',
 		'wpweewx_cache_ttl'       => 300,
 		'wpweewx_http_timeout'    => 8,
@@ -46,6 +47,16 @@ class WPWeeWX_Settings {
 				'type'              => 'string',
 				'sanitize_callback' => 'esc_url_raw',
 				'default'           => self::$defaults['wpweewx_json_url_simple'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_json_url_lcd',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'esc_url_raw',
+				'default'           => self::$defaults['wpweewx_json_url_lcd'],
 			)
 		);
 
@@ -122,7 +133,7 @@ class WPWeeWX_Settings {
 	 */
 	public static function sanitize_source( $value ) {
 		$value = is_string( $value ) ? $value : '';
-		return in_array( $value, array( 'main', 'simple' ), true ) ? $value : 'main';
+		return in_array( $value, array( 'main', 'simple', 'lcd' ), true ) ? $value : 'main';
 	}
 
 	/**

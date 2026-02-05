@@ -12,7 +12,7 @@ See `CHANGELOG.md` for release history.
 - Requires at least: 6.0
 - Tested up to: 6.6
 - Requires PHP: 8.0
-- Stable tag: 0.1.0
+- Stable tag: 0.2.0
 - License: GPLv3
 - License URI: https://www.gnu.org/licenses/gpl-3.0.html
 - Plugin Website: https://github.com/open-astro/WPWeeWX
@@ -35,3 +35,7 @@ WPWeeWX fetches WeeWX-generated JSON and renders responsive weather dashboards.
 Use `[weewx_weather]` or specify attributes:
 
 `[weewx_weather source="simple" view="current"]`
+
+## Timezone
+
+LCD timestamps are rendered using the WordPress site timezone (Settings → General → Timezone).
