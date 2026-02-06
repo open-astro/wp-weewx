@@ -57,12 +57,20 @@ class WPWeeWX_Renderer {
 			return '—';
 		}
 
+		$temp_unit = WPWeeWX_Settings::get_temp_unit();
+
 		if ( is_array( $value ) ) {
 			if ( isset( $value['value'] ) ) {
 				$unit_key = isset( $value['units'] ) ? 'units' : ( isset( $value['unit'] ) ? 'unit' : '' );
 				$unit = $unit_key ? $value[ $unit_key ] : '';
-				$number = is_numeric( $value['value'] ) ? number_format_i18n( (float) $value['value'], 2 ) : $value['value'];
-				return trim( $number . ' ' . $unit );
+				$number_raw = $value['value'];
+				if ( is_numeric( $number_raw ) ) {
+					$converted = self::convert_temperature_if_needed( (float) $number_raw, $unit, $temp_unit, $path );
+					$number = number_format_i18n( $converted['value'], 2 );
+					$unit_display = $converted['unit'];
+					return trim( $number . ( $unit_display ? ' ' . $unit_display : '' ) );
+				}
+				return trim( $number_raw . ( $unit ? ' ' . $unit : '' ) );
 			}
 
 			$values = array_values( $value );
@@ -73,12 +81,110 @@ class WPWeeWX_Renderer {
 
 		if ( is_scalar( $value ) ) {
 			if ( is_numeric( $value ) ) {
-				return number_format_i18n( (float) $value, 2 );
+				$converted = self::convert_temperature_if_needed( (float) $value, '', $temp_unit, $path );
+				$number = number_format_i18n( $converted['value'], 2 );
+				return trim( $number . ( $converted['unit'] ? ' ' . $converted['unit'] : '' ) );
 			}
 			return (string) $value;
 		}
 
 		return '—';
+	}
+
+	/**
+	 * Convert temperature values based on preferred unit.
+	 *
+	 * @param float  $value      Raw value.
+	 * @param string $unit       Unit string from data.
+	 * @param string $target     Target unit (c/f).
+	 * @param string $path       Dot path for context.
+	 * @return array{value:float,unit:string}
+	 */
+	private static function convert_temperature_if_needed( $value, $unit, $target, $path ) {
+		$target = ( 'c' === $target ) ? 'c' : 'f';
+		$unit_norm = self::normalize_temp_unit( $unit );
+		$is_temp_path = self::is_temperature_path( $path );
+
+		if ( ! $is_temp_path && '' === $unit_norm ) {
+			return array(
+				'value' => $value,
+				'unit'  => $unit,
+			);
+		}
+
+		$source_unit = $unit_norm ? $unit_norm : 'f';
+		if ( $source_unit === $target ) {
+			return array(
+				'value' => $value,
+				'unit'  => strtoupper( $target ),
+			);
+		}
+
+		if ( 'c' === $target ) {
+			$value = ( $value - 32 ) * 5 / 9;
+		} else {
+			$value = ( $value * 9 / 5 ) + 32;
+		}
+
+		return array(
+			'value' => $value,
+			'unit'  => strtoupper( $target ),
+		);
+	}
+
+	/**
+	 * Determine if a data path is temperature-like.
+	 *
+	 * @param string $path Dot path.
+	 * @return bool
+	 */
+	private static function is_temperature_path( $path ) {
+		$path = strtolower( (string) $path );
+		$needles = array(
+			'temperature',
+			'temp',
+			'dewpoint',
+			'dew point',
+			'heat index',
+			'wind chill',
+			'wind_chill',
+			'extratemp',
+			'inside temperature',
+		);
+		foreach ( $needles as $needle ) {
+			if ( false !== strpos( $path, $needle ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Normalize temperature unit strings.
+	 *
+	 * @param string $unit Unit string.
+	 * @return string
+	 */
+	private static function normalize_temp_unit( $unit ) {
+		$unit = strtolower( trim( (string) $unit ) );
+		if ( in_array( $unit, array( 'c', '°c', 'celsius' ), true ) ) {
+			return 'c';
+		}
+		if ( in_array( $unit, array( 'f', '°f', 'fahrenheit' ), true ) ) {
+			return 'f';
+		}
+		return '';
+	}
+
+	/**
+	 * Render an inline SVG sparkline (alias for sparkline).
+	 *
+	 * @param array $values  Series values or array of series definitions.
+	 * @param array $options Options like width, height, padding.
+	 * @return string
+	 */
+	public static function render_sparkline( $values, $options = array() ) {
+		return self::sparkline( $values, $options );
 	}
 
 	/**
@@ -258,6 +364,16 @@ class WPWeeWX_Renderer {
 			'stroke-linecap' => true,
 			'stroke-linejoin' => true,
 			'vector-effect' => true,
+		);
+		$allowed['canvas'] = array(
+			'class' => true,
+			'width' => true,
+			'height' => true,
+			'aria-hidden' => true,
+		);
+		$allowed['script'] = array(
+			'type'  => true,
+			'class' => true,
 		);
 
 		return $allowed;

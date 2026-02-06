@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $station_name    = WPWeeWX_Renderer::display_value( $data, 'station.location' );
 $generation_raw  = WPWeeWX_Parser::get( $data, 'generation.time' );
+$temp_unit       = WPWeeWX_Settings::get_temp_unit();
 $generation_date = '';
 $generation_time = '';
 if ( is_string( $generation_raw ) && false !== strpos( $generation_raw, 'T' ) ) {
@@ -35,9 +36,15 @@ if ( is_string( $generation_raw ) && false !== strpos( $generation_raw, 'T' ) ) 
 				<?php endif; ?>
 			</div>
 		</div>
-		<button class="weewx-weather__reload" type="button" onclick="window.location.reload()">
-			<?php esc_html_e( 'Reload', 'wpweewx' ); ?>
-		</button>
+		<div class="weewx-weather__header-actions">
+			<div class="weewx-weather__unit-toggle" data-unit-toggle>
+				<button type="button" class="weewx-weather__unit-button <?php echo 'f' === $temp_unit ? 'is-active' : ''; ?>" data-unit="f">F</button>
+				<button type="button" class="weewx-weather__unit-button <?php echo 'c' === $temp_unit ? 'is-active' : ''; ?>" data-unit="c">C</button>
+			</div>
+			<button class="weewx-weather__reload" type="button" onclick="window.location.reload()">
+				<?php esc_html_e( 'Reload', 'wpweewx' ); ?>
+			</button>
+		</div>
 	</div>
 
 	<div class="weewx-weather__grid weewx-weather__grid--single">

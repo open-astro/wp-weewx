@@ -19,6 +19,10 @@ class WPWeeWX_Settings {
 		'wpweewx_json_url_main'   => '',
 		'wpweewx_json_url_simple' => '',
 		'wpweewx_json_url_lcd'    => '',
+		'wpweewx_lcd_extra_temp1_label' => 'Extra Temp 1',
+		'wpweewx_lcd_extra_temp2_label' => 'Extra Temp 2',
+		'wpweewx_lcd_extra_temp3_label' => 'Extra Temp 3',
+		'wpweewx_temp_unit'       => 'f',
 		'wpweewx_default_source'  => 'main',
 		'wpweewx_cache_ttl'       => 300,
 		'wpweewx_http_timeout'    => 8,
@@ -57,6 +61,46 @@ class WPWeeWX_Settings {
 				'type'              => 'string',
 				'sanitize_callback' => 'esc_url_raw',
 				'default'           => self::$defaults['wpweewx_json_url_lcd'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_lcd_extra_temp1_label',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => self::$defaults['wpweewx_lcd_extra_temp1_label'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_lcd_extra_temp2_label',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => self::$defaults['wpweewx_lcd_extra_temp2_label'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_lcd_extra_temp3_label',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => self::$defaults['wpweewx_lcd_extra_temp3_label'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_temp_unit',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_temp_unit' ),
+				'default'           => self::$defaults['wpweewx_temp_unit'],
 			)
 		);
 
@@ -159,6 +203,17 @@ class WPWeeWX_Settings {
 	}
 
 	/**
+	 * Sanitize temperature unit.
+	 *
+	 * @param string $value Value.
+	 * @return string
+	 */
+	public static function sanitize_temp_unit( $value ) {
+		$value = is_string( $value ) ? strtolower( $value ) : '';
+		return in_array( $value, array( 'f', 'c' ), true ) ? $value : 'f';
+	}
+
+	/**
 	 * Sanitize positive integers.
 	 *
 	 * @param mixed $value Value.
@@ -167,5 +222,19 @@ class WPWeeWX_Settings {
 	public static function sanitize_positive_int( $value ) {
 		$value = is_numeric( $value ) ? (int) $value : 0;
 		return ( $value > 0 ) ? $value : 1;
+	}
+
+	/**
+	 * Get preferred temperature unit, honoring cookie override.
+	 *
+	 * @return string
+	 */
+	public static function get_temp_unit() {
+		$cookie_unit = isset( $_COOKIE['wpweewx_temp_unit'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['wpweewx_temp_unit'] ) ) : '';
+		$cookie_unit = self::sanitize_temp_unit( $cookie_unit );
+		if ( in_array( $cookie_unit, array( 'c', 'f' ), true ) ) {
+			return $cookie_unit;
+		}
+		return self::sanitize_temp_unit( self::get( 'wpweewx_temp_unit' ) );
 	}
 }

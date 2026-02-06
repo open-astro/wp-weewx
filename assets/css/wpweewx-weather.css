@@ -5,6 +5,10 @@
   --weewx-text: #1f2933;
   --weewx-muted: #566173;
   --weewx-accent: #1d4ed8;
+  --weewx-chart-series-primary: #1d4ed8;
+  --weewx-chart-series-secondary: #64748b;
+  --weewx-chart-series-tertiary: #f59e0b;
+  --weewx-chart-series-quaternary: #ef4444;
 
   background: var(--weewx-bg);
   color: var(--weewx-text);
@@ -21,6 +25,10 @@
   --weewx-text: #f3f4f6;
   --weewx-muted: #cbd5e1;
   --weewx-accent: #38bdf8;
+  --weewx-chart-series-primary: #38bdf8;
+  --weewx-chart-series-secondary: #94a3b8;
+  --weewx-chart-series-tertiary: #fbbf24;
+  --weewx-chart-series-quaternary: #f87171;
 }
 
 .weewx-weather__header {
@@ -29,6 +37,38 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+}
+
+.weewx-weather__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weewx-weather__unit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--weewx-card);
+  border: 1px solid var(--weewx-border);
+}
+
+.weewx-weather__unit-button {
+  border: 0;
+  background: transparent;
+  color: var(--weewx-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.weewx-weather__unit-button.is-active {
+  background: var(--weewx-accent);
+  color: #fff;
 }
 
 .weewx-weather__title {
@@ -88,6 +128,12 @@
   gap: 12px;
 }
 
+.weewx-weather__tabs--lcd {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--weewx-border);
+}
+
 .weewx-weather__tab-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -136,6 +182,7 @@
   font-weight: 600;
 }
 
+/* SVG chart containers and layout */
 .weewx-weather__chart-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -143,16 +190,56 @@
 }
 
 .weewx-weather__chart-card {
-  background: var(--weewx-bg);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 4px;
+  background: var(--weewx-card);
   border: 1px solid var(--weewx-border);
   border-radius: 8px;
-  padding: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .weewx-weather__chart-title {
   font-size: 12px;
+  font-weight: 600;
   color: var(--weewx-muted);
   margin-bottom: 6px;
+}
+
+.weewx-weather__chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--weewx-muted);
+}
+
+.weewx-weather__chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.weewx-weather__chart-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--weewx-chart-series-primary);
+  display: inline-block;
+}
+
+.weewx-weather__chart-legend-swatch--secondary {
+  background: var(--weewx-chart-series-secondary);
+}
+
+.weewx-weather__chart-legend-swatch--tertiary {
+  background: var(--weewx-chart-series-tertiary);
+}
+
+.weewx-weather__chart-legend-swatch--quaternary {
+  background: var(--weewx-chart-series-quaternary);
 }
 
 .weewx-weather__chart-body {
@@ -171,8 +258,22 @@
   color: var(--weewx-muted);
 }
 
+.weewx-weather__chart-axis span {
+  line-height: 1.2;
+}
+
 .weewx-weather__chart-plot {
   width: 100%;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  height: 80px;
+}
+
+.weewx-weather__chart-card--radar .weewx-weather__chart-plot {
+  height: 160px;
+  min-height: 160px;
+  align-items: center;
 }
 
 .weewx-weather__chart-x {
@@ -183,29 +284,41 @@
   margin-top: 4px;
 }
 
-.weewx-weather__chart-card {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 4px;
+.weewx-weather__chart-x span {
+  line-height: 1.2;
 }
 
+/* Inline SVG sparklines and series colors */
 .weewx-weather__sparkline {
   width: 100%;
+  min-width: 120px;
   height: auto;
+  min-height: 50px;
+  display: block;
+}
+
+.weewx-weather__chart-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .weewx-weather__sparkline-series {
   fill: none;
-  stroke-width: 2;
-  stroke: var(--weewx-accent);
+  stroke-width: 2.5;
+  stroke: var(--weewx-chart-series-primary);
 }
 
 .weewx-weather__sparkline-series--secondary {
-  stroke: #94a3b8;
+  stroke: var(--weewx-chart-series-secondary);
 }
 
 .weewx-weather__sparkline-series--tertiary {
-  stroke: #f59e0b;
+  stroke: var(--weewx-chart-series-tertiary);
+}
+
+.weewx-weather__sparkline-series--quaternary {
+  stroke: var(--weewx-chart-series-quaternary);
 }
 
 .weewx-weather__chart-empty {

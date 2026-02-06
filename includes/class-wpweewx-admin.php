@@ -108,6 +108,24 @@ class WPWeeWX_Admin {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'LCD Extra Temp 1 Label', 'wpweewx' ); ?></th>
+						<td>
+							<input type="text" class="regular-text" name="wpweewx_lcd_extra_temp1_label" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_lcd_extra_temp1_label' ) ); ?>" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'LCD Extra Temp 2 Label', 'wpweewx' ); ?></th>
+						<td>
+							<input type="text" class="regular-text" name="wpweewx_lcd_extra_temp2_label" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_lcd_extra_temp2_label' ) ); ?>" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'LCD Extra Temp 3 Label', 'wpweewx' ); ?></th>
+						<td>
+							<input type="text" class="regular-text" name="wpweewx_lcd_extra_temp3_label" value="<?php echo esc_attr( WPWeeWX_Settings::get( 'wpweewx_lcd_extra_temp3_label' ) ); ?>" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Default Source', 'wpweewx' ); ?></th>
 						<td>
 							<select name="wpweewx_default_source">
@@ -136,6 +154,15 @@ class WPWeeWX_Admin {
 								<option value="dashboard" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_view' ), 'dashboard' ); ?>><?php esc_html_e( 'Dashboard', 'wpweewx' ); ?></option>
 								<option value="current" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_view' ), 'current' ); ?>><?php esc_html_e( 'Current', 'wpweewx' ); ?></option>
 								<option value="summary" <?php selected( WPWeeWX_Settings::get( 'wpweewx_default_view' ), 'summary' ); ?>><?php esc_html_e( 'Summary', 'wpweewx' ); ?></option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Temperature Unit', 'wpweewx' ); ?></th>
+						<td>
+							<select name="wpweewx_temp_unit">
+								<option value="f" <?php selected( WPWeeWX_Settings::get( 'wpweewx_temp_unit' ), 'f' ); ?>><?php esc_html_e( 'Fahrenheit (F)', 'wpweewx' ); ?></option>
+								<option value="c" <?php selected( WPWeeWX_Settings::get( 'wpweewx_temp_unit' ), 'c' ); ?>><?php esc_html_e( 'Celsius (C)', 'wpweewx' ); ?></option>
 							</select>
 						</td>
 					</tr>
