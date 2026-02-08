@@ -134,6 +134,21 @@
       return num.toExponential(sciPrecision);
     }
     var useScientific = payload.valueFormat === 'sci';
+    var fixedPrecision = null;
+    if (typeof payload.valueFormat === 'string' && payload.valueFormat.indexOf('fixed:') === 0) {
+      fixedPrecision = parseInt(payload.valueFormat.split(':')[1], 10);
+      if (!isFinite(fixedPrecision)) {
+        fixedPrecision = 2;
+      }
+    }
+    var useFixed = typeof fixedPrecision === 'number';
+    function formatFixed(value) {
+      var num = typeof value === 'number' ? value : parseFloat(value);
+      if (!isFinite(num)) {
+        return value;
+      }
+      return num.toFixed(fixedPrecision);
+    }
 
     var options = {
       responsive: true,
@@ -148,7 +163,12 @@
               var label = context.dataset && context.dataset.label ? context.dataset.label + ': ' : '';
               return label + formatScientific(context.parsed && context.parsed.y != null ? context.parsed.y : context.parsed);
             }
-          } : {}
+          } : (useFixed ? {
+            label: function (context) {
+              var label = context.dataset && context.dataset.label ? context.dataset.label + ': ' : '';
+              return label + formatFixed(context.parsed && context.parsed.y != null ? context.parsed.y : context.parsed);
+            }
+          } : {})
         }
       },
       scales: type === 'radar' ? {} : {
@@ -168,7 +188,9 @@
             maxTicksLimit: 3,
             callback: useScientific ? function (value) {
               return formatScientific(value);
-            } : undefined
+            } : (useFixed ? function (value) {
+              return formatFixed(value);
+            } : undefined)
           },
           grid: {
             color: gridColor

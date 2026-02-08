@@ -151,6 +151,8 @@ $lcd_label_map = array(
 	'sqmTemp'         => __( 'SQM Temp', 'wpweewx' ),
 	'sqmtemp'         => __( 'SQM Temp', 'wpweewx' ),
 	'sqm_temp'        => __( 'SQM Temp', 'wpweewx' ),
+	'sqmTime'         => __( 'SQM Time', 'wpweewx' ),
+	'sqm_time'        => __( 'SQM Time', 'wpweewx' ),
 	'nelm'            => __( 'NELM', 'wpweewx' ),
 	'cdm2'            => __( 'cd/m2', 'wpweewx' ),
 	'nsu'             => __( 'NSU', 'wpweewx' ),
@@ -173,6 +175,56 @@ $lcd_field_label = function( $field ) use ( $lcd_label_map ) {
 $lcd_field_index = array();
 if ( ! empty( $lcd_fields ) ) {
 	$lcd_field_index = array_flip( $lcd_fields );
+}
+$sqm_latest = null;
+if ( ! empty( $lcd_daily_rows ) && ! empty( $lcd_field_index ) ) {
+	$sqm_fields = array(
+		'sqm',
+		'sqmTemp',
+		'sqmtemp',
+		'sqm_temp',
+		'sqmTime',
+		'sqm_time',
+		'nelm',
+		'cdm2',
+		'cd_m2',
+		'nsu',
+		'solarAlt',
+		'solaralt',
+		'solar_alt',
+		'lunarAlt',
+		'lunaralt',
+		'lunar_alt',
+		'lunarPhase',
+		'lunarphase',
+		'lunar_phase',
+	);
+	for ( $i = count( $lcd_daily_rows ) - 1; $i >= 0; $i-- ) {
+		$row = $lcd_daily_rows[ $i ];
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$has_value = false;
+		foreach ( $sqm_fields as $field ) {
+			if ( ! isset( $lcd_field_index[ $field ] ) ) {
+				continue;
+			}
+			$idx = $lcd_field_index[ $field ];
+			$val = isset( $row[ $idx ] ) ? $row[ $idx ] : null;
+			if ( is_numeric( $val ) ) {
+				$has_value = true;
+				break;
+			}
+		}
+		if ( ! $has_value ) {
+			continue;
+		}
+		$sqm_latest = array();
+		foreach ( $lcd_fields as $index => $field ) {
+			$sqm_latest[ $field ] = isset( $row[ $index ] ) ? $row[ $index ] : null;
+		}
+		break;
+	}
 }
 $lcd_latest_fields = $lcd_fields;
 if ( empty( $lcd_latest_fields ) && is_array( $lcd_latest ) ) {
@@ -323,16 +375,19 @@ $sqm_metrics = array(
 		'title'         => __( 'Solar Alt', 'wpweewx' ),
 		'daily_fields'  => array( 'solarAlt', 'solar_alt' ),
 		'summary_roots' => array( 'solarAlt', 'solar_alt' ),
+		'value_format'  => 'fixed:2',
 	),
 	array(
 		'title'         => __( 'Lunar Alt', 'wpweewx' ),
 		'daily_fields'  => array( 'lunarAlt', 'lunar_alt' ),
 		'summary_roots' => array( 'lunarAlt', 'lunar_alt' ),
+		'value_format'  => 'fixed:2',
 	),
 	array(
 		'title'         => __( 'Lunar Phase', 'wpweewx' ),
 		'daily_fields'  => array( 'lunarPhase', 'lunar_phase' ),
 		'summary_roots' => array( 'lunarPhase', 'lunar_phase' ),
+		'value_format'  => 'fixed:2',
 	),
 );
 $build_labels_from_epochs = function( $epochs, $format_callback ) {
@@ -391,6 +446,13 @@ $format_value = function( $value ) {
 	}
 	return number_format_i18n( (float) $value, 2 );
 };
+$format_value_fixed = function( $value, $precision ) {
+	if ( ! is_numeric( $value ) ) {
+		return '—';
+	}
+	$precision = is_numeric( $precision ) ? (int) $precision : 2;
+	return number_format_i18n( (float) $value, $precision );
+};
 $format_value_sci = function( $value ) {
 	if ( ! is_numeric( $value ) ) {
 		return '—';
@@ -429,22 +491,42 @@ $summary_range = function( $items ) {
 		isset( $last['period_end_epoch'] ) ? $last['period_end_epoch'] : null,
 	);
 };
-$render_chart = function( $title, $series_list, $x_start, $x_end, $axis_ticks = null, $chart_options = array() ) use ( $format_value, $format_value_sci, $series_has_numeric, $series_minmax ) {
+$render_chart = function( $title, $series_list, $x_start, $x_end, $axis_ticks = null, $chart_options = array() ) use ( $format_value, $format_value_fixed, $format_value_sci, $series_has_numeric, $series_minmax ) {
 	$chart_type = isset( $chart_options['type'] ) ? $chart_options['type'] : 'line';
 	$show_series_labels = ! empty( $chart_options['show_series_labels'] );
 	$series_list = is_array( $series_list ) ? $series_list : array();
-	$format_value_fn = function( $value ) use ( $format_value, $format_value_sci, $chart_options ) {
-		if ( isset( $chart_options['value_format'] ) && 'sci' === $chart_options['value_format'] ) {
+	$value_format = isset( $chart_options['value_format'] ) ? $chart_options['value_format'] : null;
+	$fixed_precision = null;
+	if ( is_string( $value_format ) && 0 === strpos( $value_format, 'fixed:' ) ) {
+		$fixed_precision = (int) substr( $value_format, strlen( 'fixed:' ) );
+	} elseif ( is_int( $value_format ) ) {
+		$fixed_precision = $value_format;
+	}
+	$format_value_fn = function( $value ) use ( $format_value, $format_value_fixed, $format_value_sci, $value_format, $fixed_precision ) {
+		if ( 'sci' === $value_format ) {
 			return $format_value_sci( $value );
+		}
+		if ( null !== $fixed_precision ) {
+			return $format_value_fixed( $value, $fixed_precision );
 		}
 		return $format_value( $value );
 	};
 	$filtered_series = array();
+	$normalize_value = function( $value ) use ( $fixed_precision ) {
+		if ( ! is_numeric( $value ) ) {
+			return $value;
+		}
+		$number = (float) $value;
+		if ( null !== $fixed_precision ) {
+			return round( $number, $fixed_precision );
+		}
+		return $number;
+	};
 	foreach ( $series_list as $item ) {
 		if ( ! is_array( $item ) ) {
 			continue;
 		}
-		$values = isset( $item['values'] ) && is_array( $item['values'] ) ? $item['values'] : array();
+		$values = isset( $item['values'] ) && is_array( $item['values'] ) ? array_map( $normalize_value, $item['values'] ) : array();
 		if ( ! $series_has_numeric( $values ) ) {
 			continue;
 		}
@@ -504,7 +586,7 @@ $render_chart = function( $title, $series_list, $x_start, $x_end, $axis_ticks = 
 			'type'     => isset( $chart_options['type'] ) ? $chart_options['type'] : 'line',
 		);
 		if ( isset( $chart_options['value_format'] ) ) {
-			$payload['valueFormat'] = (string) $chart_options['value_format'];
+			$payload['valueFormat'] = is_string( $chart_options['value_format'] ) ? $chart_options['value_format'] : (string) $chart_options['value_format'];
 		}
 		if ( isset( $chart_options['y_min'] ) && is_numeric( $chart_options['y_min'] ) ) {
 			$payload['yMin'] = (float) $chart_options['y_min'];
@@ -782,6 +864,8 @@ $show_sqm = (int) WPWeeWX_Settings::get( 'wpweewx_show_sqm' ) === 1;
 								'sqmTemp',
 								'sqmtemp',
 								'sqm_temp',
+								'sqmTime',
+								'sqm_time',
 								'nelm',
 								'cdm2',
 								'cd_m2',
@@ -1476,26 +1560,46 @@ $show_sqm = (int) WPWeeWX_Settings::get( 'wpweewx_show_sqm' ) === 1;
 			<?php
 			$has_sqm_current = null !== WPWeeWX_Parser::get( $lcd_current, 'sqm' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'sqmTemp' ) ||
+				null !== WPWeeWX_Parser::get( $lcd_current, 'sqmTime' ) ||
+				null !== WPWeeWX_Parser::get( $lcd_current, 'sqm_time' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'nelm' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'cdm2' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'nsu' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'solarAlt' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'lunarAlt' ) ||
 				null !== WPWeeWX_Parser::get( $lcd_current, 'lunarPhase' );
-			$has_sqm_sections = $show_sqm && ( $has_sqm_current || ! empty( $lcd_daily_recent ) || ! empty( $lcd_weekly ) || ! empty( $lcd_monthly ) || ! empty( $lcd_yearly ) );
+			$has_sqm_sections = $show_sqm && ( $has_sqm_current || ! empty( $sqm_latest ) || ! empty( $lcd_daily_recent ) || ! empty( $lcd_weekly ) || ! empty( $lcd_monthly ) || ! empty( $lcd_yearly ) );
 			if ( $has_sqm_sections ) :
 				ob_start();
+				$sqm_time_value = WPWeeWX_Parser::get( $lcd_current, 'sqmTime' );
+				if ( ! is_numeric( $sqm_time_value ) ) {
+					$sqm_time_value = WPWeeWX_Parser::get( $lcd_current, 'sqm_time' );
+				}
+				if ( ! is_numeric( $sqm_time_value ) && is_array( $sqm_latest ) && isset( $sqm_latest['sqmTime'] ) ) {
+					$sqm_time_value = $sqm_latest['sqmTime'];
+				}
+				if ( ! is_numeric( $sqm_time_value ) && is_array( $sqm_latest ) && isset( $sqm_latest['sqm_time'] ) ) {
+					$sqm_time_value = $sqm_latest['sqm_time'];
+				}
+				if ( ! is_numeric( $sqm_time_value ) && is_array( $sqm_latest ) && isset( $sqm_latest['timestamp_epoch'] ) ) {
+					$sqm_time_value = $sqm_latest['timestamp_epoch'];
+				}
+				$sqm_display = $has_sqm_current ? $lcd_current : $sqm_latest;
+				$has_sqm_display = ! empty( $sqm_display );
 				?>
 				<div class="weewx-weather__tab-panel is-active" data-tab-panel="<?php echo esc_attr( $lcd_tabs_id . '-latest' ); ?>" role="tabpanel">
-					<?php if ( $has_sqm_current ) : ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'SQM', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'sqm' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'SQM Temp', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'sqmTemp' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'NELM', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'nelm' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'cd/m2', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'cdm2' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'NSU', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'nsu' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'Solar Alt', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'solarAlt' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'Lunar Alt', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'lunarAlt' ) ); ?>
-						<?php WPWeeWX_Renderer::metric_row( __( 'Lunar Phase', 'wpweewx' ), WPWeeWX_Renderer::display_value( $lcd_current, 'lunarPhase' ) ); ?>
+					<?php if ( $has_sqm_display ) : ?>
+						<?php if ( is_numeric( $sqm_time_value ) ) : ?>
+							<?php WPWeeWX_Renderer::metric_row( __( 'SQM Time', 'wpweewx' ), $format_epoch( $sqm_time_value ) ); ?>
+						<?php endif; ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'SQM', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'sqm' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'SQM Temp', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'sqmTemp' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'NELM', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'nelm' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'cd/m2', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'cdm2' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'NSU', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'nsu' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'Solar Alt', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'solarAlt' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'Lunar Alt', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'lunarAlt' ) ); ?>
+						<?php WPWeeWX_Renderer::metric_row( __( 'Lunar Phase', 'wpweewx' ), WPWeeWX_Renderer::display_value( $sqm_display, 'lunarPhase' ) ); ?>
 					<?php else : ?>
 						<?php esc_html_e( 'No SQM latest data available.', 'wpweewx' ); ?>
 					<?php endif; ?>
@@ -1504,7 +1608,10 @@ $show_sqm = (int) WPWeeWX_Settings::get( 'wpweewx_show_sqm' ) === 1;
 					<div class="weewx-weather__chart-grid">
 						<?php
 						$sqm_daily_has_chart = false;
-						$sqm_daily_timestamps = $extract_daily_series( 'timestamp_epoch' );
+						$sqm_daily_timestamps = $extract_daily_series( 'sqmTime' );
+						if ( ! $series_has_numeric( $sqm_daily_timestamps ) ) {
+							$sqm_daily_timestamps = $extract_daily_series( 'timestamp_epoch' );
+						}
 						$sqm_daily_labels = $build_labels_from_epochs( $sqm_daily_timestamps, $format_time_only );
 						$sqm_daily_chart_options = array(
 							'labels' => $sqm_daily_labels,

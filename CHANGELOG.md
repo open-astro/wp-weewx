@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 0.5.1
+
+- Add SQM Time field (sqmTime / sqm_time) to labels and SQM Latest tab; show SQM Time row when available.
+- SQM Latest tab: fallback to last SQM row from daily data when no current reading ($sqm_latest); use for metric display and to show tab when only historical SQM data exists.
+- Chart value format: support `fixed:N` (e.g. `fixed:2`) for axis and tooltip; Solar Alt, Lunar Alt, Lunar Phase use fixed:2.
+- SQM daily charts: prefer sqmTime for x-axis labels when present, else timestamp_epoch.
+
 ## 0.5.0
 
 - Add SQM (sky quality) support: optional display of SQM metrics and charts when data is available.
