@@ -23,6 +23,7 @@ class WPWeeWX_Settings {
 		'wpweewx_lcd_extra_temp2_label' => 'Extra Temp 2',
 		'wpweewx_lcd_extra_temp3_label' => 'Extra Temp 3',
 		'wpweewx_temp_unit'       => 'f',
+		'wpweewx_source_temp_unit' => 'f',
 		'wpweewx_default_source'  => 'main',
 		'wpweewx_cache_ttl'       => 300,
 		'wpweewx_http_timeout'    => 8,
@@ -102,6 +103,16 @@ class WPWeeWX_Settings {
 				'type'              => 'string',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_temp_unit' ),
 				'default'           => self::$defaults['wpweewx_temp_unit'],
+			)
+		);
+
+		register_setting(
+			'wpweewx_settings',
+			'wpweewx_source_temp_unit',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_temp_unit' ),
+				'default'           => self::$defaults['wpweewx_source_temp_unit'],
 			)
 		);
 
@@ -257,5 +268,15 @@ class WPWeeWX_Settings {
 			return $cookie_unit;
 		}
 		return self::sanitize_temp_unit( self::get( 'wpweewx_temp_unit' ) );
+	}
+
+	/**
+	 * Get the unit the station reports temperatures in (used for feeds
+	 * without per-value unit metadata, like the LCD datasheet).
+	 *
+	 * @return string
+	 */
+	public static function get_source_temp_unit() {
+		return self::sanitize_temp_unit( self::get( 'wpweewx_source_temp_unit' ) );
 	}
 }

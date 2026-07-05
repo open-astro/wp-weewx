@@ -112,7 +112,7 @@ class WPWeeWX_Renderer {
 			);
 		}
 
-		$source_unit = $unit_norm ? $unit_norm : 'f';
+		$source_unit = $unit_norm ? $unit_norm : WPWeeWX_Settings::get_source_temp_unit();
 		if ( $source_unit === $target ) {
 			return array(
 				'value' => $value,
