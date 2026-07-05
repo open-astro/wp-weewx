@@ -225,6 +225,16 @@ class WPWeeWX_Admin {
 								</td>
 							</tr>
 							<tr>
+								<th scope="row"><?php esc_html_e( 'Station Data Unit', 'wpweewx' ); ?></th>
+								<td>
+									<select name="wpweewx_source_temp_unit">
+										<option value="f" <?php selected( WPWeeWX_Settings::get( 'wpweewx_source_temp_unit' ), 'f' ); ?>><?php esc_html_e( 'Fahrenheit (F)', 'wpweewx' ); ?></option>
+										<option value="c" <?php selected( WPWeeWX_Settings::get( 'wpweewx_source_temp_unit' ), 'c' ); ?>><?php esc_html_e( 'Celsius (C)', 'wpweewx' ); ?></option>
+									</select>
+									<p class="description"><?php esc_html_e( 'The unit your WeeWX station reports temperatures in. Used for data feeds without unit metadata (e.g. the dataset charts). Set this to Celsius for metric stations.', 'wpweewx' ); ?></p>
+								</td>
+							</tr>
+							<tr>
 								<th scope="row"><?php esc_html_e( 'Default Theme', 'wpweewx' ); ?></th>
 								<td>
 									<select name="wpweewx_default_theme">

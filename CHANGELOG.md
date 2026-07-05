@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 0.5.2
+
+- Fix double temperature conversion for metric stations (GH-1): chart series and LCD Latest values assumed the station reports Fahrenheit, so already-Celsius data was converted F→C a second time when the display unit was Celsius.
+- Add admin setting "Station Data Unit" (`wpweewx_source_temp_unit`, default Fahrenheit): the unit the station reports in, used for feeds without per-value unit metadata.
+- Temperature conversion now works in both directions (C→F as well as F→C) and is skipped when source and display units match.
+- Renderer: unit-less temperature values fall back to the configured station unit instead of always assuming Fahrenheit (fixes LCD extra temp cards for metric stations).
+
 ## 0.5.1
 
 - Add SQM Time field (sqmTime / sqm_time) to labels and SQM Latest tab; show SQM Time row when available.

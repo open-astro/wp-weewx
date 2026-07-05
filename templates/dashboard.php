@@ -83,15 +83,19 @@ if ( isset( $lcd_data['lcd_datasheet']['yearly_monthly_summaries'] ) && is_array
 	$lcd_yearly = $lcd_data['lcd_datasheet']['yearly_monthly_summaries'];
 }
 $temp_unit = WPWeeWX_Settings::get_temp_unit();
-$convert_temp_value = function( $value ) use ( $temp_unit ) {
+$source_temp_unit = WPWeeWX_Settings::get_source_temp_unit();
+$convert_temp_value = function( $value ) use ( $temp_unit, $source_temp_unit ) {
 	if ( ! is_numeric( $value ) ) {
 		return $value;
 	}
 	$value = (float) $value;
+	if ( $source_temp_unit === $temp_unit ) {
+		return $value;
+	}
 	if ( 'c' === $temp_unit ) {
 		return ( $value - 32 ) * 5 / 9;
 	}
-	return $value;
+	return ( $value * 9 / 5 ) + 32;
 };
 $convert_temp_series = function( $series ) use ( $convert_temp_value ) {
 	if ( ! is_array( $series ) ) {
@@ -117,7 +121,7 @@ $format_lcd = function( $value, $field = '' ) use ( $convert_temp_value, $is_tem
 		return '—';
 	}
 	$val = (float) $value;
-	if ( $is_temp_field( $field ) && 'c' === $temp_unit ) {
+	if ( $is_temp_field( $field ) ) {
 		$val = $convert_temp_value( $val );
 	}
 	$suffix = $is_temp_field( $field ) ? ' ' . strtoupper( $temp_unit ) : '';
