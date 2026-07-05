@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  php-lint:
+    name: PHP lint (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.0', '8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Syntax check all PHP files
+        run: |
+          set -e
+          status=0
+          while IFS= read -r -d '' file; do
+            php -l "$file" || status=1
+          done < <(find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0)
+          exit $status
+
+  js-lint:
+    name: JavaScript syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax check all JS files
+        run: |
+          set -e
+          for file in assets/js/*.js; do
+            echo "Checking $file"
+            node --check "$file"
+          done
+
+  consistency:
+    name: Version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Plugin header version matches WPWEEWX_VERSION constant
+        run: |
+          header=$(grep -oE 'Version:\s*[0-9.]+' wpweewx.php | head -1 | grep -oE '[0-9.]+')
+          constant=$(grep -oE "define\( 'WPWEEWX_VERSION', '[0-9.]+' \)" wpweewx.php | grep -oE '[0-9.]+' | tail -1)
+          echo "Header: $header  Constant: $constant"
+          test -n "$header" && test "$header" = "$constant"
+
+      - name: Changelog has an entry for the current version
+        run: |
+          version=$(grep -oE "define\( 'WPWEEWX_VERSION', '[0-9.]+' \)" wpweewx.php | grep -oE '[0-9.]+' | tail -1)
+          echo "Looking for CHANGELOG entry: ## $version"
+          grep -q "^## $version" CHANGELOG.md
